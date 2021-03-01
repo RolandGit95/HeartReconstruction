@@ -66,7 +66,7 @@ for archive in archives:
         #################### find min, max ####################
 
         min_val, max_val = 10000000, -10000000
-        for file in tqdm(sample(files, 2)):
+        for file in tqdm(sample(files, 128)):
             temp = os.path.join('temp', os.path.basename(file))
             with open(temp, 'wb') as f:
                 f.write(zip.read(file))
@@ -92,7 +92,7 @@ for archive in archives:
 
         #######################################################
         
-        for file in tqdm(files[:16]):
+        for file in tqdm(files):
             temp = os.path.join('temp', os.path.basename(file))
             with open(temp, 'wb') as f:
                 f.write(zip.read(file))
