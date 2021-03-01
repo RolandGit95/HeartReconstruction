@@ -53,9 +53,8 @@ if __name__=='__main__':
 
 archives = glob.glob(args.source_folder + '*')
 
-#archive = zipfile.ZipFile(zipfiles[0], 'r')
-
-for archive in archives:
+for archive in archives:    
+    archive_name = os.path.splitext(os.path.basename(archive))[0]
     
     with ZipFile(archive, mode='r') as zip:
         namelist = zip.namelist()
@@ -93,19 +92,23 @@ for archive in archives:
 
         #######################################################
         
-        for file in tqdm(files[:2]):
+        for file in tqdm(files[:16]):
             temp = os.path.join('temp', os.path.basename(file))
             with open(temp, 'wb') as f:
                 f.write(zip.read(file))
             data = np.fromfile(temp)
             os.remove(temp)
 
-            #try:
-            data = compressData(data, scaler, dtype=np.int8)
-            target_name = os.path.join(args.target_folder, os.path.basename(file))
-            np.save(target_name, data)
-            #except:
-                #print(f"Did not work here: {file}")
+            try:
+                data = compressData(data, scaler, dtype=np.int8)
+                
+                target_folder = os.path.join(args.target_folder, archive_name)
+                os.makedirs(target_folder, exist_ok=True)
+
+                target_name = os.path.join(target_folder, os.path.basename(file))
+                np.save(target_name, data)
+            except:
+                print(f"Did not work here: {file}")
                 
             
                 
