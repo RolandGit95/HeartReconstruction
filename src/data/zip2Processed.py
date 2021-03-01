@@ -6,7 +6,8 @@ import numpy as np
 import argparse
 from omegaconf import OmegaConf
 import glob
-from zipfile import ZipFile
+#from zipfile import ZipFile
+import zipfile
 from sklearn.preprocessing import MinMaxScaler
 
 # %%
@@ -33,6 +34,15 @@ def getDataFromZipPath(file):
     os.remove(temp)
     return data
 
+def zipfolder(foldername, target_dir):            
+    zipobj = zipfile.ZipFile(foldername + '.zip', 'w', zipfile.ZIP_DEFLATED)
+    rootlen = len(target_dir)
+    for base, dirs, files in os.walk(target_dir):
+        for file in files:
+            fn = os.path.join(base, file)
+            zipobj.write(fn, fn[rootlen:])
+
+
 # %%
 
 if __name__=='__main__': 
@@ -56,7 +66,7 @@ archives = glob.glob(args.source_folder + '*')
 for archive in archives:    
     archive_name = os.path.splitext(os.path.basename(archive))[0]
     
-    with ZipFile(archive, mode='r') as zip:
+    with zipfile.ZipFile(archive, mode='r') as zip:
         namelist = zip.namelist()
         
         inds = np.where(["V_snap" in name for name in namelist])
@@ -66,7 +76,7 @@ for archive in archives:
         #################### find min, max ####################
 
         min_val, max_val = 10000000, -10000000
-        for file in tqdm(sample(files, 128)):
+        for file in tqdm(sample(files, 4)):
             temp = os.path.join('temp', os.path.basename(file))
             with open(temp, 'wb') as f:
                 f.write(zip.read(file))
@@ -92,7 +102,7 @@ for archive in archives:
 
         #######################################################
         
-        for file in tqdm(files):
+        for file in tqdm(files[:6]):
             temp = os.path.join('temp', os.path.basename(file))
             with open(temp, 'wb') as f:
                 f.write(zip.read(file))
@@ -110,23 +120,8 @@ for archive in archives:
             except:
                 print(f"Did not work here: {file}")
                 
-            
-                
-            
-    """       
-    for file in tqdm(files[:16]):
-            temp = os.path.join('temp', os.path.basename(file))
-            
-            with open(temp, 'wb') as f:
-                f.write(zip.read(file))
-                
-            data = np.fromfile(temp)
-            os.remove(temp)
-    """
-        
-#for zipfile in zipfiles:
-#    with ZipFile(zipfile, 'r') as zipObject:
-#       # Extract all the contents of zip file in current directory
-#       zipObject.extractall()
-    
+target_folder_zip = os.path.abspath(os.path.join(args.target_folder, os.pardir))
+target_zip_name = os.path.join(target_folder_zip, 'processed')
+
+zipfolder(target_zip_name, args.target_folder)
 
